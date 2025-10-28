@@ -1,1 +1,102 @@
-node_modules
+# Dependencies
+node_modules/
+*/node_modules/
+**/node_modules/
+
+# Build outputs
+dist/
+build/
+target/
+out/
+*.egg-info/
+.next/
+.nuxt/
+.cache/
+.parcel-cache/
+
+# Environment files (optional - uncomment if you want to ignore)
+# .env
+# .env.local
+# .env.development.local
+# .env.test.local
+# .env.production.local
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Runtime data
+pids/
+*.pid
+*.seed
+*.pid.lock
+
+# Coverage directory used by tools like istanbul
+coverage/
+*.lcov
+
+# nyc test coverage
+.nyc_output/
+
+# IDE files (optional - uncomment if you want to ignore)
+# .idea/
+# .vscode/
+# *.swp
+# *.swo
+# *~
+# .DS_Store
+# Thumbs.db
+
+# Version control
+.git/
+.svn/
+.hg/
+.bzr/
+
+# Archives and large files (keep these ignored for repository size)
+*.zip
+*.tar.gz
+*.tar.bz2
+*.rar
+*.7z
+*.dmg
+*.iso
+
+# Media files (keep these ignored for repository size)
+*.mp4
+*.mp3
+*.wav
+*.avi
+*.mov
+*.jpg
+*.jpeg
+*.png
+*.gif
+*.bmp
+*.tiff
+
+# Database files (keep these ignored for security and size)
+*.db
+*.sqlite
+*.sqlite3
+*.dump
+*.backup
+
+# ClickHouse data (keep ignored for repository size)
+clickhouse-data/
+chdb-data/
+
+# Lockfiles (optional - uncomment if you want to ignore)
+# package-lock.json
+# yarn.lock
+# poetry.lock
+# Pipfile.lock
+# composer.lock
+# Gemfile.lock
+
+# Temporary folders
+tmp/
+temp/
