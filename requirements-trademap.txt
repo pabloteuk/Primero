@@ -9,10 +9,3 @@ selenium==4.15.2
 webdriver-manager==4.0.1
 schedule==1.2.1
 python-dotenv==1.0.0
-asyncio==3.4.3
-logging==0.5.1.2
-pathlib==1.0.1
-typing==3.7.4.3
-json==2.0.9
-datetime==5.4
-random==3.12.0

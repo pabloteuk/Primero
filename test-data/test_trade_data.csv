@@ -1,0 +1,4 @@
+reporter_country,partner_country,product_code,trade_flow,year,month,trade_value_usd,trade_quantity,quantity_unit,net_weight_kg,gross_weight_kg,extracted_at
+United States,World,85,Export,2023,12,1000000,50000,kg,50000.0,55000.0,2025-10-28T22:20:18.293430
+China,World,84,Export,2023,12,2000000,75000,units,,,2025-10-28T22:20:18.293430
+Germany,World,87,Export,2023,12,1500000,60000,pieces,60000.0,65000.0,2025-10-28T22:20:18.293430
