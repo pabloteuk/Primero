@@ -1,170 +1,210 @@
 import axios from 'axios'
-import { WorldBankData, TradeData, RegionData, PredictionData } from '../types'
 
-const API_BASE_URL = 'https://api.worldbank.org/v2'
-const CACHE_DURATION = 5 * 60 * 1000 // 5 minutes
+const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3001/api'
 
-interface CacheEntry {
-  data: any
-  timestamp: number
+// Create axios instance with default config
+const api = axios.create({
+  baseURL: API_BASE,
+  timeout: 10000,
+  headers: {
+    'Content-Type': 'application/json'
+  }
+})
+
+// Request interceptor
+api.interceptors.request.use(
+  (config) => {
+    console.log(`🚀 API Request: ${config.method?.toUpperCase()} ${config.url}`)
+    return config
+  },
+  (error) => {
+    console.error('❌ API Request Error:', error)
+    return Promise.reject(error)
+  }
+)
+
+// Response interceptor
+api.interceptors.response.use(
+  (response) => {
+    console.log(`✅ API Response: ${response.status} ${response.config.url}`)
+    return response
+  },
+  (error) => {
+    console.error('❌ API Response Error:', error.response?.data || error.message)
+    return Promise.reject(error)
+  }
+)
+
+// Origination API
+export const originationAPI = {
+  // Get AI-discovered suppliers
+  getSuppliers: (params = {}) => 
+    api.get('/origination/suppliers', { params }),
+  
+  // Score supplier potential
+  scoreSupplier: (supplierId, criteria = {}) => 
+    api.post('/origination/score', { supplierId, criteria }),
+  
+  // Extract document data
+  extractDocument: (documentType, documentData) => 
+    api.post('/origination/extract', { documentType, documentData }),
+  
+  // Get origination metrics
+  getMetrics: () => 
+    api.get('/origination/metrics')
 }
 
-const cache = new Map<string, CacheEntry>()
+// Compliance API
+export const complianceAPI = {
+  // Verify KYC/AML/UBO
+  verifyCompliance: (supplierId, forceRefresh = false) => 
+    api.get(`/compliance/verify/${supplierId}`, { 
+      params: { forceRefresh } 
+    }),
+  
+  // Get compliance status
+  getStatus: (supplierId) => 
+    api.get(`/compliance/status/${supplierId}`),
+  
+  // Get compliance metrics
+  getMetrics: () => 
+    api.get('/compliance/metrics'),
+  
+  // Bulk compliance verification
+  bulkVerify: (supplierIds) => 
+    api.post('/compliance/bulk-verify', { supplierIds })
+}
 
-class APIService {
-  private async getCachedData<T>(key: string, fetcher: () => Promise<T>): Promise<T> {
-    const cached = cache.get(key)
-    const now = Date.now()
-    
-    if (cached && (now - cached.timestamp) < CACHE_DURATION) {
-      return cached.data
-    }
+// Receivables API
+export const receivablesAPI = {
+  // Analyze invoices
+  analyzeInvoices: (invoices, analysisType = 'full') => 
+    api.post('/receivables/analyze', { invoices, analysisType }),
+  
+  // Get invoice quality
+  getQuality: (invoiceId, includeExplanation = true) => 
+    api.get(`/receivables/quality/${invoiceId}`, { 
+      params: { includeExplanation } 
+    }),
+  
+  // Get receivables metrics
+  getMetrics: () => 
+    api.get('/receivables/metrics'),
+  
+  // Get portfolio analysis
+  getPortfolio: (params = {}) => 
+    api.get('/receivables/portfolio', { params })
+}
+
+// Matching API
+export const matchingAPI = {
+  // Match invoices to buyers
+  matchBuyers: (invoices, preferences = {}) => 
+    api.post('/matching/allocate', { invoices, preferences }),
+  
+  // Get buyer profiles
+  getBuyers: (active = true) => 
+    api.get('/matching/buyers', { params: { active } }),
+  
+  // Get matching metrics
+  getMetrics: () => 
+    api.get('/matching/metrics'),
+  
+  // Simulate allocation
+  simulate: (invoices, buyerId) => 
+    api.post('/matching/simulate', { invoices, buyerId })
+}
+
+// Analytics API
+export const analyticsAPI = {
+  // Get pipeline metrics
+  getPipeline: () => 
+    api.get('/analytics/pipeline'),
+  
+  // Get ROI metrics
+  getROI: () => 
+    api.get('/analytics/roi'),
+  
+  // Get automation metrics
+  getAutomation: () => 
+    api.get('/analytics/automation'),
+  
+  // Get complete dashboard
+  getDashboard: () => 
+    api.get('/analytics/dashboard')
+}
+
+// WebSocket connection for real-time updates
+export class WebSocketService {
+  private ws: WebSocket | null = null
+  private reconnectAttempts = 0
+  private maxReconnectAttempts = 5
+  private reconnectDelay = 1000
+
+  connect() {
+    const wsUrl = import.meta.env.VITE_WS_URL || 'ws://localhost:3001/ws/origination'
     
     try {
-      const data = await fetcher()
-      cache.set(key, { data, timestamp: now })
-      return data
-    } catch (error) {
-      console.error(`API Error for ${key}:`, error)
-      throw error
-    }
-  }
-
-  async getTradeIndicators(): Promise<WorldBankData[]> {
-    return this.getCachedData('trade-indicators', async () => {
-      const response = await axios.get(`${API_BASE_URL}/country/all/indicator/NY.GDP.MKTP.CD`, {
-        params: {
-          format: 'json',
-          per_page: 1000,
-          date: '2020:2024'
-        }
-      })
-      return response.data[1] || []
-    })
-  }
-
-  async getLogisticsPerformanceIndex(): Promise<WorldBankData[]> {
-    return this.getCachedData('lpi', async () => {
-      const response = await axios.get(`${API_BASE_URL}/country/all/indicator/LP.LPI.OVRL.XQ`, {
-        params: {
-          format: 'json',
-          per_page: 1000,
-          date: '2020:2024'
-        }
-      })
-      return response.data[1] || []
-    })
-  }
-
-  async getTariffRates(): Promise<WorldBankData[]> {
-    return this.getCachedData('tariffs', async () => {
-      const response = await axios.get(`${API_BASE_URL}/country/all/indicator/TM.TAX.MRCH.WM.AR.ZS`, {
-        params: {
-          format: 'json',
-          per_page: 1000,
-          date: '2020:2024'
-        }
-      })
-      return response.data[1] || []
-    })
-  }
-
-  // Generate synthetic trade finance data
-  generateSyntheticTradeData(): TradeData[] {
-    const regions = ['North America', 'Europe', 'Asia-Pacific', 'Latin America', 'Africa', 'Middle East']
-    const types = ['import', 'export', 'lc_volume', 'trade_gap'] as const
-    const data: TradeData[] = []
-    
-    const now = new Date()
-    for (let i = 0; i < 1000; i++) {
-      const daysAgo = Math.floor(Math.random() * 365)
-      const date = new Date(now.getTime() - daysAgo * 24 * 60 * 60 * 1000)
+      this.ws = new WebSocket(wsUrl)
       
-      data.push({
-        id: `trade-${i}`,
-        timestamp: date.toISOString(),
-        value: Math.random() * 1000000000 + 10000000,
-        currency: 'USD',
-        region: regions[Math.floor(Math.random() * regions.length)],
-        type: types[Math.floor(Math.random() * types.length)]
-      })
-    }
-    
-    return data.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
-  }
-
-  generateRegionData(): RegionData[] {
-    return [
-      {
-        name: 'Asia-Pacific',
-        code: 'APAC',
-        tradeVolume: 12500000000000,
-        lcVolume: 3200000000000,
-        gap: 450000000000,
-        growth: 8.2
-      },
-      {
-        name: 'Europe',
-        code: 'EUR',
-        tradeVolume: 9800000000000,
-        lcVolume: 2800000000000,
-        gap: 320000000000,
-        growth: 5.1
-      },
-      {
-        name: 'North America',
-        code: 'NA',
-        tradeVolume: 8200000000000,
-        lcVolume: 2100000000000,
-        gap: 280000000000,
-        growth: 6.8
-      },
-      {
-        name: 'Latin America',
-        code: 'LATAM',
-        tradeVolume: 1800000000000,
-        lcVolume: 450000000000,
-        gap: 180000000000,
-        growth: 12.3
-      },
-      {
-        name: 'Middle East',
-        code: 'ME',
-        tradeVolume: 1200000000000,
-        lcVolume: 320000000000,
-        gap: 120000000000,
-        growth: 9.7
-      },
-      {
-        name: 'Africa',
-        code: 'AFR',
-        tradeVolume: 800000000000,
-        lcVolume: 180000000000,
-        gap: 150000000000,
-        growth: 15.2
+      this.ws.onopen = () => {
+        console.log('🔌 WebSocket connected')
+        this.reconnectAttempts = 0
       }
-    ]
+      
+      this.ws.onmessage = (event) => {
+        try {
+          const data = JSON.parse(event.data)
+          console.log('📨 WebSocket message:', data)
+          // Handle real-time updates here
+        } catch (error) {
+          console.error('❌ WebSocket message error:', error)
+        }
+      }
+      
+      this.ws.onclose = () => {
+        console.log('🔌 WebSocket disconnected')
+        this.attemptReconnect()
+      }
+      
+      this.ws.onerror = (error) => {
+        console.error('❌ WebSocket error:', error)
+      }
+    } catch (error) {
+      console.error('❌ WebSocket connection error:', error)
+    }
   }
 
-  generatePredictions(): PredictionData[] {
-    const predictions: PredictionData[] = []
-    const now = new Date()
-    
-    for (let i = 1; i <= 12; i++) {
-      const date = new Date(now.getFullYear(), now.getMonth() + i, 1)
-      const baseValue = 28500000000000 // $28.5T base
-      const growth = 0.02 + Math.random() * 0.08 // 2-10% growth
-      const predicted = baseValue * (1 + growth * i / 12)
-      
-      predictions.push({
-        date: date.toISOString(),
-        predicted,
-        confidence: 0.85 + Math.random() * 0.1 // 85-95% confidence
-      })
+  disconnect() {
+    if (this.ws) {
+      this.ws.close()
+      this.ws = null
     }
-    
-    return predictions
+  }
+
+  send(message: any) {
+    if (this.ws && this.ws.readyState === WebSocket.OPEN) {
+      this.ws.send(JSON.stringify(message))
+    } else {
+      console.warn('⚠️ WebSocket not connected')
+    }
+  }
+
+  private attemptReconnect() {
+    if (this.reconnectAttempts < this.maxReconnectAttempts) {
+      this.reconnectAttempts++
+      console.log(`🔄 Attempting to reconnect (${this.reconnectAttempts}/${this.maxReconnectAttempts})`)
+      
+      setTimeout(() => {
+        this.connect()
+      }, this.reconnectDelay * this.reconnectAttempts)
+    } else {
+      console.error('❌ Max reconnection attempts reached')
+    }
   }
 }
 
-export const apiService = new APIService()
+// Export WebSocket service instance
+export const wsService = new WebSocketService()
+
+export default api

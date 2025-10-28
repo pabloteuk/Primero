@@ -172,4 +172,4 @@ const AIInsightsPanel: React.FC = () => {
   )
 }
 
-export default AIInsightsPanel
+export { AIInsightsPanel }

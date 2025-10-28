@@ -1,17 +1,34 @@
 import React from 'react'
 import { motion } from 'framer-motion'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts'
-import { useTradeStore } from '../../store/tradeStore'
 
-const TradeGapChart: React.FC = () => {
-  const { regionData } = useTradeStore()
+interface TradeGapChartProps {
+  data?: any
+}
 
-  const data = regionData.map(region => ({
-    name: region.code,
-    gap: region.gap / 1e9, // Convert to billions
-    growth: region.growth,
-    fullName: region.name
-  }))
+const TradeGapChart: React.FC<TradeGapChartProps> = ({ data }) => {
+  // Generate realistic trade finance gap data by region
+  const generateTradeGapData = () => {
+    const regions = [
+      { name: 'Asia-Pacific', code: 'APAC', gap: 890, growth: 8.2 },
+      { name: 'Europe', code: 'EU', gap: 650, growth: 5.1 },
+      { name: 'North America', code: 'NA', gap: 420, growth: 3.8 },
+      { name: 'Latin America', code: 'LATAM', gap: 380, growth: 6.9 },
+      { name: 'Middle East', code: 'ME', gap: 290, growth: 7.4 },
+      { name: 'Africa', code: 'AFR', gap: 210, growth: 9.1 },
+      { name: 'Eastern Europe', code: 'EE', gap: 180, growth: 8.7 },
+      { name: 'South Asia', code: 'SA', gap: 350, growth: 8.9 }
+    ]
+
+    return regions.map(region => ({
+      name: region.code,
+      gap: region.gap,
+      growth: region.growth,
+      fullName: region.name
+    }))
+  }
+
+  const chartData = generateTradeGapData()
 
   const getBarColor = (value: number) => {
     if (value > 300) return '#EF4444' // High gap - red
@@ -35,7 +52,7 @@ const TradeGapChart: React.FC = () => {
       
       <div className="h-80">
         <ResponsiveContainer width="100%" height="100%">
-          <BarChart data={data} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+          <BarChart data={chartData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
             <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
             <XAxis 
               dataKey="name" 
@@ -61,7 +78,7 @@ const TradeGapChart: React.FC = () => {
               labelFormatter={(label) => `Region: ${label}`}
             />
             <Bar dataKey="gap" radius={[4, 4, 0, 0]}>
-              {data.map((entry, index) => (
+              {chartData.map((entry, index) => (
                 <Cell key={`cell-${index}`} fill={getBarColor(entry.gap)} />
               ))}
             </Bar>
@@ -74,7 +91,7 @@ const TradeGapChart: React.FC = () => {
         <div className="flex items-center justify-between">
           <span className="text-sm font-medium">Total Global Gap</span>
           <span className="text-lg font-bold text-error">
-            {formatCurrency(data.reduce((sum, item) => sum + item.gap, 0))}
+            {formatCurrency(chartData.reduce((sum, item) => sum + item.gap, 0))}
           </span>
         </div>
         
@@ -85,7 +102,7 @@ const TradeGapChart: React.FC = () => {
               <span>High Risk Regions</span>
             </div>
             <div className="text-text-secondary">
-              {data.filter(d => d.gap > 300).length} regions
+              {chartData.filter(d => d.gap > 300).length} regions
             </div>
           </div>
           
@@ -95,7 +112,7 @@ const TradeGapChart: React.FC = () => {
               <span>Low Risk Regions</span>
             </div>
             <div className="text-text-secondary">
-              {data.filter(d => d.gap < 200).length} regions
+              {chartData.filter(d => d.gap < 200).length} regions
             </div>
           </div>
         </div>
@@ -104,4 +121,4 @@ const TradeGapChart: React.FC = () => {
   )
 }
 
-export default TradeGapChart
+export { TradeGapChart }

@@ -2,30 +2,47 @@ import React from 'react'
 import { motion } from 'framer-motion'
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Area, AreaChart } from 'recharts'
 
-const LCTrendsChart: React.FC = () => {
-  // Generate sample data for LC trends
+interface LCTrendsChartProps {
+  data?: any
+}
+
+const LCTrendsChart: React.FC<LCTrendsChartProps> = ({ data }) => {
+  // Generate data based on backend metrics or fallback to realistic LC data
   const generateData = () => {
-    const data = []
+    const monthlyData = []
     const now = new Date()
-    
+
+    // Use automation metrics for growth trends if available
+    const automationTrends = data?.automation?.monthlyImprovements || []
+
     for (let i = 11; i >= 0; i--) {
       const date = new Date(now.getFullYear(), now.getMonth() - i, 1)
-      const baseValue = 3200000000000 // $3.2T base
-      const growth = 0.02 + Math.random() * 0.08 // 2-10% growth
+
+      // Base LC volume (global LC market is ~$2-3T annually)
+      let baseValue = 250000000000 // $250B monthly base
+
+      // Apply growth based on automation improvements if available
+      const automationData = automationTrends.find((trend: any) => {
+        const trendDate = new Date(trend.month + '-01')
+        return trendDate.getMonth() === date.getMonth() && trendDate.getFullYear() === date.getFullYear()
+      })
+
+      const automationRate = automationData?.automationRate || 0.8
+      const growth = 0.02 + (automationRate - 0.8) * 0.1 // Automation drives growth
       const value = baseValue * (1 + growth * (12 - i) / 12)
-      
-      data.push({
+
+      monthlyData.push({
         month: date.toLocaleDateString('en-US', { month: 'short' }),
         lcVolume: value,
-        digitalLC: value * (0.15 + Math.random() * 0.1), // 15-25% digital
-        traditionalLC: value * (0.75 + Math.random() * 0.1) // 75-85% traditional
+        digitalLC: value * (0.15 + (automationRate - 0.8) * 0.3), // Digital share grows with automation
+        traditionalLC: value * (0.85 - (automationRate - 0.8) * 0.3) // Traditional share decreases
       })
     }
-    
-    return data
+
+    return monthlyData
   }
 
-  const data = generateData()
+  const chartData = generateData()
 
   const formatCurrency = (value: number) => {
     if (value >= 1e12) return `$${(value / 1e12).toFixed(1)}T`
@@ -34,8 +51,8 @@ const LCTrendsChart: React.FC = () => {
   }
 
   const calculateYoYGrowth = () => {
-    const current = data[data.length - 1]?.lcVolume || 0
-    const previous = data[0]?.lcVolume || 1
+    const current = chartData[chartData.length - 1]?.lcVolume || 0
+    const previous = chartData[0]?.lcVolume || 1
     return (((current / previous) - 1) * 100).toFixed(1)
   }
 
@@ -50,7 +67,7 @@ const LCTrendsChart: React.FC = () => {
       
       <div className="h-80">
         <ResponsiveContainer width="100%" height="100%">
-          <AreaChart data={data}>
+          <AreaChart data={chartData}>
             <defs>
               <linearGradient id="lcGradient" x1="0" y1="0" x2="0" y2="1">
                 <stop offset="5%" stopColor="#0EA5E9" stopOpacity={0.3}/>
@@ -107,7 +124,7 @@ const LCTrendsChart: React.FC = () => {
       <div className="mt-6 grid grid-cols-3 gap-4">
         <div className="text-center">
           <div className="text-2xl font-bold text-primary">
-            {formatCurrency(data[data.length - 1]?.lcVolume || 0)}
+            {formatCurrency(chartData[chartData.length - 1]?.lcVolume || 0)}
           </div>
           <div className="text-sm text-text-secondary">Current Volume</div>
         </div>
@@ -119,7 +136,7 @@ const LCTrendsChart: React.FC = () => {
         </div>
         <div className="text-center">
           <div className="text-2xl font-bold text-success">
-            {((data[data.length - 1]?.digitalLC || 0) / (data[data.length - 1]?.lcVolume || 1) * 100).toFixed(1)}%
+            {((chartData[chartData.length - 1]?.digitalLC || 0) / (chartData[chartData.length - 1]?.lcVolume || 1) * 100).toFixed(1)}%
           </div>
           <div className="text-sm text-text-secondary">Digital Share</div>
         </div>
@@ -128,4 +145,4 @@ const LCTrendsChart: React.FC = () => {
   )
 }
 
-export default LCTrendsChart
+export { LCTrendsChart }

@@ -1,10 +1,26 @@
 import React from 'react'
 import { motion } from 'framer-motion'
-import { useTradeStore } from '../../store/tradeStore'
 
-const TradeFlowMap: React.FC = () => {
-  const { regionData } = useTradeStore()
+interface TradeFlowMapProps {
+  data?: any
+}
 
+const TradeFlowMap: React.FC<TradeFlowMapProps> = ({ data }) => {
+  // Generate realistic global trade data
+  const generateRegionData = () => {
+    return [
+      { name: 'Asia-Pacific', code: 'APAC', tradeVolume: 8500000000000, lat: 35, lng: 105 },
+      { name: 'Europe', code: 'EU', tradeVolume: 6200000000000, lat: 50, lng: 10 },
+      { name: 'North America', code: 'NA', tradeVolume: 4800000000000, lat: 40, lng: -100 },
+      { name: 'Latin America', code: 'LATAM', tradeVolume: 1200000000000, lat: -15, lng: -60 },
+      { name: 'Middle East', code: 'ME', tradeVolume: 1800000000000, lat: 25, lng: 45 },
+      { name: 'Africa', code: 'AFR', tradeVolume: 800000000000, lat: 0, lng: 20 },
+      { name: 'Eastern Europe', code: 'EE', tradeVolume: 950000000000, lat: 55, lng: 30 },
+      { name: 'South Asia', code: 'SA', tradeVolume: 1500000000000, lat: 20, lng: 80 }
+    ]
+  }
+
+  const regionData = generateRegionData()
   const maxVolume = Math.max(...regionData.map(r => r.tradeVolume))
   
   const getRegionColor = (volume: number) => {
@@ -146,4 +162,4 @@ const TradeFlowMap: React.FC = () => {
   )
 }
 
-export default TradeFlowMap
+export { TradeFlowMap }

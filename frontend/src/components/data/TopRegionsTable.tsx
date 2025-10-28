@@ -102,4 +102,4 @@ const TopRegionsTable: React.FC = () => {
   )
 }
 
-export default TopRegionsTable
+export { TopRegionsTable }

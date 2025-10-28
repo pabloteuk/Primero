@@ -1,0 +1,20 @@
+{
+  "name": "primero-trade-finance",
+  "version": "1.0.0",
+  "description": "AI-powered trade finance origination platform",
+  "private": true,
+  "workspaces": [
+    "frontend",
+    "backend",
+    "ml-models"
+  ],
+  "scripts": {
+    "dev": "concurrently \"npm run dev --workspace=frontend\" \"npm run dev --workspace=backend\"",
+    "build": "npm run build --workspace=frontend",
+    "start": "npm run start --workspace=backend",
+    "test": "npm run test --workspace=backend"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.0"
+  }
+}

@@ -131,4 +131,4 @@ const LogisticsPerformanceChart: React.FC = () => {
   )
 }
 
-export default LogisticsPerformanceChart
+export { LogisticsPerformanceChart }
