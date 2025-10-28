@@ -17,7 +17,15 @@
     "clickhouse:stop": "docker compose down",
     "clickhouse:init": "sleep 5 && docker exec primero-clickhouse clickhouse-client --query \"CREATE DATABASE IF NOT EXISTS primero_tradefinance;\" && docker exec -i primero-clickhouse clickhouse-client --database primero_tradefinance < clickhouse-init.sql",
     "clickhouse:setup": "npm run clickhouse:start && npm run clickhouse:init",
-    "clickhouse:client": "docker exec -it primero-clickhouse clickhouse-client --database primero_tradefinance"
+    "clickhouse:client": "docker exec -it primero-clickhouse clickhouse-client --database primero_tradefinance",
+    "trademap:schema": "docker exec -i primero-clickhouse clickhouse-client --database primero_tradefinance < trademap-schema.sql",
+    "trademap:extract": "python3 trademap-extractor.py",
+    "trademap:load": "python3 clickhouse-loader.py",
+    "trademap:schedule": "python3 trademap-scheduler.py",
+    "trademap:run-once": "python3 trademap-scheduler.py --run-once extraction",
+    "trademap:status": "python3 trademap-scheduler.py --status",
+    "trademap:setup": "pip install -r requirements-trademap.txt && npm run clickhouse:setup && npm run trademap:schema",
+    "trademap:test": "python3 test-trademap-pipeline.py"
   },
   "devDependencies": {
     "concurrently": "^8.2.0"
