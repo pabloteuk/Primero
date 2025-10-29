@@ -14,6 +14,9 @@ import complianceRoutes from './routes/compliance.js'
 import receivablesRoutes from './routes/receivables.js'
 import matchingRoutes from './routes/matching.js'
 import analyticsRoutes from './routes/analytics.js'
+import trademapRoutes from './routes/trademap.js'
+import unComtradeRoutes from './routes/unComtrade.js'
+import itcScraperRoutes from './routes/itcScraper.js'
 
 // Import middleware
 import { errorHandler } from './middleware/errorHandler.js'
@@ -98,7 +101,38 @@ app.get('/', (req, res) => {
         pipeline: '/api/analytics/pipeline',
         roi: '/api/analytics/roi',
         automation: '/api/analytics/automation',
-        dashboard: '/api/analytics/dashboard'
+        dashboard: '/api/analytics/dashboard',
+        trademap: '/api/analytics/trademap-dashboard'
+      },
+      trademap: {
+        'trade-flows': '/api/trademap/trade-flows',
+        insights: '/api/trademap/insights',
+        companies: '/api/trademap/companies',
+        indicators: '/api/trademap/indicators',
+        countries: '/api/trademap/countries',
+        products: '/api/trademap/products',
+        analytics: '/api/trademap/analytics',
+        search: '/api/trademap/search',
+        opportunities: '/api/trademap/opportunities',
+        risks: '/api/trademap/risks',
+        'supply-chain': '/api/trademap/supply-chain'
+      },
+      uncomtrade: {
+        initialize: '/api/uncomtrade/initialize',
+        availability: '/api/uncomtrade/availability',
+        preview: '/api/uncomtrade/preview',
+        data: '/api/uncomtrade/data',
+        statistics: '/api/uncomtrade/statistics',
+        'collect-major-countries': '/api/uncomtrade/collect-major-countries',
+        status: '/api/uncomtrade/status'
+      },
+      'itc-scraper': {
+        'collect-major-countries': '/api/itc-scraper/collect-major-countries',
+        data: '/api/itc-scraper/data',
+        statistics: '/api/itc-scraper/statistics',
+        'extract-country': '/api/itc-scraper/extract-country/:countryCode',
+        status: '/api/itc-scraper/status',
+        cleanup: '/api/itc-scraper/cleanup'
       }
     },
     websocket: {
@@ -125,6 +159,9 @@ app.use('/api/compliance', complianceRoutes)
 app.use('/api/receivables', receivablesRoutes)
 app.use('/api/matching', matchingRoutes)
 app.use('/api/analytics', analyticsRoutes)
+app.use('/api/trademap', trademapRoutes)
+app.use('/api/uncomtrade', unComtradeRoutes)
+app.use('/api/itc-scraper', itcScraperRoutes)
 
 // WebSocket server for real-time updates
 const wss = new WebSocketServer({ server, path: '/ws/origination' })

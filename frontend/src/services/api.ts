@@ -1,6 +1,18 @@
 import axios from 'axios'
 
-const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3001/api'
+// Types for API parameters
+type SupplierId = string | number
+type DocumentType = string
+type DocumentData = any
+type SupplierIds = SupplierId[]
+type Invoices = any[]
+type InvoiceId = string | number
+type BuyerId = string | number
+type Query = string
+type Country = string
+type Product = string
+
+const API_BASE = (import.meta as any).env?.VITE_API_URL || 'http://localhost:3001/api'
 
 // Create axios instance with default config
 const api = axios.create({
@@ -42,11 +54,11 @@ export const originationAPI = {
     api.get('/origination/suppliers', { params }),
   
   // Score supplier potential
-  scoreSupplier: (supplierId, criteria = {}) => 
+  scoreSupplier: (supplierId: SupplierId, criteria = {}) =>
     api.post('/origination/score', { supplierId, criteria }),
-  
+
   // Extract document data
-  extractDocument: (documentType, documentData) => 
+  extractDocument: (documentType: DocumentType, documentData: DocumentData) =>
     api.post('/origination/extract', { documentType, documentData }),
   
   // Get origination metrics
@@ -57,13 +69,13 @@ export const originationAPI = {
 // Compliance API
 export const complianceAPI = {
   // Verify KYC/AML/UBO
-  verifyCompliance: (supplierId, forceRefresh = false) => 
-    api.get(`/compliance/verify/${supplierId}`, { 
-      params: { forceRefresh } 
+  verifyCompliance: (supplierId: SupplierId, forceRefresh = false) =>
+    api.get(`/compliance/verify/${supplierId}`, {
+      params: { forceRefresh }
     }),
-  
+
   // Get compliance status
-  getStatus: (supplierId) => 
+  getStatus: (supplierId: SupplierId) =>
     api.get(`/compliance/status/${supplierId}`),
   
   // Get compliance metrics
@@ -71,20 +83,20 @@ export const complianceAPI = {
     api.get('/compliance/metrics'),
   
   // Bulk compliance verification
-  bulkVerify: (supplierIds) => 
+  bulkVerify: (supplierIds: SupplierIds) =>
     api.post('/compliance/bulk-verify', { supplierIds })
 }
 
 // Receivables API
 export const receivablesAPI = {
   // Analyze invoices
-  analyzeInvoices: (invoices, analysisType = 'full') => 
+  analyzeInvoices: (invoices: Invoices, analysisType = 'full') =>
     api.post('/receivables/analyze', { invoices, analysisType }),
-  
+
   // Get invoice quality
-  getQuality: (invoiceId, includeExplanation = true) => 
-    api.get(`/receivables/quality/${invoiceId}`, { 
-      params: { includeExplanation } 
+  getQuality: (invoiceId: InvoiceId, includeExplanation = true) =>
+    api.get(`/receivables/quality/${invoiceId}`, {
+      params: { includeExplanation }
     }),
   
   // Get receivables metrics
@@ -99,39 +111,148 @@ export const receivablesAPI = {
 // Matching API
 export const matchingAPI = {
   // Match invoices to buyers
-  matchBuyers: (invoices, preferences = {}) => 
+  matchBuyers: (invoices: Invoices, preferences = {}) =>
     api.post('/matching/allocate', { invoices, preferences }),
-  
+
   // Get buyer profiles
-  getBuyers: (active = true) => 
+  getBuyers: (active = true) =>
     api.get('/matching/buyers', { params: { active } }),
-  
+
   // Get matching metrics
-  getMetrics: () => 
+  getMetrics: () =>
     api.get('/matching/metrics'),
-  
+
   // Simulate allocation
-  simulate: (invoices, buyerId) => 
+  simulate: (invoices: Invoices, buyerId: BuyerId) =>
     api.post('/matching/simulate', { invoices, buyerId })
+}
+
+// UN Comtrade API
+export const unComtradeAPI = {
+  // Initialize ClickHouse tables
+  initializeTables: () =>
+    api.post('/uncomtrade/initialize'),
+
+  // Get data availability
+  getDataAvailability: (params = {}) =>
+    api.get('/uncomtrade/availability', { params }),
+
+  // Preview final data (limited)
+  previewData: (params = {}) =>
+    api.get('/uncomtrade/preview', { params }),
+
+  // Get final data (full dataset)
+  getData: (params = {}) =>
+    api.get('/uncomtrade/data', { params }),
+
+  // Get trade statistics
+  getStatistics: (params = {}) =>
+    api.get('/uncomtrade/statistics', { params }),
+
+  // Collect major countries data
+  collectMajorCountries: () =>
+    api.post('/uncomtrade/collect-major-countries'),
+
+  // Get collection status
+  getStatus: () =>
+    api.get('/uncomtrade/status')
+}
+
+// ITC Scraper API
+export const itcScraperAPI = {
+  // Collect ITC data for major countries
+  collectMajorCountries: () =>
+    api.post('/itc-scraper/collect-major-countries'),
+
+  // Get stored ITC data
+  getData: (params = {}) =>
+    api.get('/itc-scraper/data', { params }),
+
+  // Get ITC statistics
+  getStatistics: () =>
+    api.get('/itc-scraper/statistics'),
+
+  // Extract data for specific country
+  extractCountry: (countryCode: string, year = 2023) =>
+    api.post(`/itc-scraper/extract-country/${countryCode}`, {}, { params: { year } }),
+
+  // Get collection status
+  getStatus: () =>
+    api.get('/itc-scraper/status'),
+
+  // Cleanup scraper resources
+  cleanup: () =>
+    api.post('/itc-scraper/cleanup')
+}
+
+// Trade Map API
+export const tradeMapAPI = {
+  // Get trade flows data
+  getTradeFlows: (params = {}) =>
+    api.get('/trademap/trade-flows', { params }),
+
+  // Get market insights
+  getInsights: (params = {}) =>
+    api.get('/trademap/insights', { params }),
+
+  // Get company directory
+  getCompanies: (params = {}) =>
+    api.get('/trademap/companies', { params }),
+
+  // Get trade indicators
+  getIndicators: (params = {}) =>
+    api.get('/trademap/indicators', { params }),
+
+  // Get country data
+  getCountries: () =>
+    api.get('/trademap/countries'),
+
+  // Get product classifications
+  getProducts: () =>
+    api.get('/trademap/products'),
+
+  // Get trade analytics
+  getAnalytics: (params = {}) =>
+    api.get('/trademap/analytics', { params }),
+
+  // Search trade data
+  search: (query: Query, type = 'all') =>
+    api.get('/trademap/search', { params: { q: query, type } }),
+
+  // Get market opportunities
+  getOpportunities: (params = {}) =>
+    api.get('/trademap/opportunities', { params }),
+
+  // Get risk assessments
+  getRisks: (params = {}) =>
+    api.get('/trademap/risks', { params }),
+
+  // Get supply chain analysis
+  getSupplyChain: (country: Country, product: Product) =>
+    api.get('/trademap/supply-chain', { params: { country, product } })
 }
 
 // Analytics API
 export const analyticsAPI = {
   // Get pipeline metrics
-  getPipeline: () => 
+  getPipeline: () =>
     api.get('/analytics/pipeline'),
-  
+
   // Get ROI metrics
-  getROI: () => 
+  getROI: () =>
     api.get('/analytics/roi'),
-  
+
   // Get automation metrics
-  getAutomation: () => 
+  getAutomation: () =>
     api.get('/analytics/automation'),
-  
+
   // Get complete dashboard
-  getDashboard: () => 
-    api.get('/analytics/dashboard')
+  getDashboard: () =>
+    api.get('/analytics/dashboard'),
+
+  // Get Trade Map enhanced dashboard
+  getTradeMapDashboard: () =>
+    api.get('/analytics/trademap-dashboard')
 }
 
 // WebSocket connection for real-time updates
@@ -142,7 +263,7 @@ export class WebSocketService {
   private reconnectDelay = 1000
 
   connect() {
-    const wsUrl = import.meta.env.VITE_WS_URL || 'ws://localhost:3001/ws/origination'
+    const wsUrl = (import.meta as any).env?.VITE_WS_URL || 'ws://localhost:3001/ws/origination'
     
     try {
       this.ws = new WebSocket(wsUrl)
