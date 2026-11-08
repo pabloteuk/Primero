@@ -6,8 +6,8 @@ import { Sheet, SheetContent, SheetTrigger } from './components/ui/sheet'
 import { Badge } from './components/ui/badge'
 import Dashboard from './components/Dashboard'
 import AnalyticsWorkbench from './features/analytics-workbench/AnalyticsWorkbench'
-import SupplierSearch from './components/trade/SupplierSearch'
-import TradeDealForm from './components/trade/TradeDealForm'
+import { SupplierSearch } from './components/trade/SupplierSearch'
+import { TradeDealForm } from './components/trade/TradeDealForm'
 import './index.css'
 
 function App() {
