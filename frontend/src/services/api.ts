@@ -12,7 +12,15 @@ type Query = string
 type Country = string
 type Product = string
 
-const API_BASE = (import.meta as any).env?.VITE_API_URL || 'http://localhost:3001/api'
+/** Same-origin `/api` in the browser so iPhone → Mac Vite proxy works (avoids phone-localhost). */
+function resolveApiBase(): string {
+  const envBase = import.meta.env.VITE_API_URL
+  if (envBase) return envBase
+  if (typeof window !== 'undefined') return '/api'
+  return 'http://localhost:3001/api'
+}
+
+const API_BASE = resolveApiBase()
 
 // Create axios instance with default config
 const api = axios.create({
@@ -263,7 +271,12 @@ export class WebSocketService {
   private reconnectDelay = 1000
 
   connect() {
-    const wsUrl = (import.meta as any).env?.VITE_WS_URL || 'ws://localhost:3001/ws/origination'
+    const envWs = import.meta.env.VITE_WS_URL
+    const wsUrl =
+      envWs ||
+      (typeof window !== 'undefined'
+        ? `${window.location.protocol === 'https:' ? 'wss' : 'ws'}://${window.location.host}/ws/origination`
+        : 'ws://localhost:3001/ws/origination')
     
     try {
       this.ws = new WebSocket(wsUrl)
